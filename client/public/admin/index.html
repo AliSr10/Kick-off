@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kickoff | Staff Authentication</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Rajdhani:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="auth-body">
+
+  <a href="/" style="position: absolute; top: 24px; left: 32px; color: var(--accent); text-decoration: none; font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 1.1rem; letter-spacing: 1px; z-index: 100; transition: opacity 0.3s;">
+  ← BACK TO PUBLIC SITE
+  </a>
+
+  <!-- Glowing Admin Login Box -->
+  <div class="login-box" id="loginBox">
+    <h2 style="font-family: var(--font-display); letter-spacing: 4px;">STAFF TERMINAL</h2>
+    <form id="loginForm">
+      <div class="user-box">
+        <input type="text" id="username" name="username" required>
+        <label>Operator ID</label>
+      </div>
+      <div class="user-box">
+        <input type="password" id="password" name="password" required>
+        <label>Passcode</label>
+      </div>
+      
+      <button type="submit" class="neon-submit" id="loginBtn">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        AUTHORIZE ACCESS
+      </button>
+
+      <div id="loginError" style="color: var(--danger); margin-top: 20px; font-size: 0.85rem; text-align: center; font-family: var(--font-mono);"></div>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errBanner = document.getElementById('loginError');
+      errBanner.style.display = 'none';
+
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: document.getElementById('username').value,
+          password: document.getElementById('password').value
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        window.location.href = '/admin/dashboard.html';
+      } else {
+        errBanner.textContent = data.error || 'Authentication rejected';
+        errBanner.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>
