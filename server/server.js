@@ -17,7 +17,6 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'kickoff_fallback_secret_key',
   resave: false,
   saveUninitialized: false
-  cookie: { secure: false, maxAge: 1000 * 60 * 60 * 24 * 7 } // 7-day session
 }));
 
 app.use(passport.initialize());
