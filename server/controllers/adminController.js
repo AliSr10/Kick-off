@@ -186,10 +186,9 @@ module.exports = {
   getReservations,
   cancelReservation,
   createManualReservation,
-  getAnalytics
-};
   getStandingBookings,
   createStandingBooking,
   updateStandingBooking,
-  deleteStandingBooking
+  deleteStandingBooking,
+  getAnalytics
 };
