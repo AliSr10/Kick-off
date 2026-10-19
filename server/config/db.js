@@ -7,7 +7,7 @@ require('dotenv').config({ path: path.join(__dirname, '../.env') });
 console.log("DB URL Loaded:", process.env.DATABASE_URL ? "Yes (Found)" : "No (Using Fallback)");
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgres://postgres:srourAli123@localhost:5432/kickoff'
+  connectionString: process.env.DATABASE_URL
 });
 
 pool.on('error', (err) => {
