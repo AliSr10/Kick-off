@@ -7,7 +7,10 @@ require('dotenv').config({ path: path.join(__dirname, '../.env') });
 console.log("DB URL Loaded:", process.env.DATABASE_URL ? "Yes (Found)" : "No (Using Fallback)");
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
+  connectionString: process.env.DATABASE_URL || process.env.DB_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 pool.on('error', (err) => {
