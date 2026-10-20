@@ -27,19 +27,21 @@ app.use(
         scriptSrc: ["'self'", "'unsafe-inline'", "https://apis.google.com"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        imgSrc: ["'self'", "data:", "https://*.googleusercontent.com"],
+        // Added "https:" to allow images from any secure external source
+        imgSrc: ["'self'", "data:", "https://*.googleusercontent.com", "https:"], 
+        // Added frameSrc to allow embedded Google Maps (the "location")
+        frameSrc: ["'self'", "https://www.google.com", "https://maps.google.com"], 
         connectSrc: ["'self'"],
       },
     },
     referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
     hsts: {
-      maxAge: 31536000, // 1 year
+      maxAge: 31536000, 
       includeSubDomains: true,
       preload: true,
     },
   })
 );
-
 // 2. Hide Express stack identity
 app.disable('x-powered-by');
 
