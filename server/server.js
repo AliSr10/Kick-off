@@ -79,7 +79,7 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/auth', publicAuthRoutes);
 
 // Fallback for SPA Routing
-app.get('*', (req, res) => {
+app.get('/{*splat}', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/public/index.html'));
 });
 
