@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <title>Kickoff | Pitch Management Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/vendor/flatpickr.min.css?v=4.6.13">
+  <link rel="stylesheet" href="admin.css?v=2.3.0">
+  <link rel="stylesheet" href="/mobile.css?v=2.3.0">
+</head>
+<body class="admin-page dashboard-page">
+
+  <!-- Top Operator Bar -->
+  <header class="admin-topbar">
+    <div class="topbar-left">
+      <span class="logo-text">KICKOFF</span>
+      <span class="facility-tag">CHOUEIFAT PITCH 1</span>
+    </div>
+    <div class="topbar-right">
+      <span class="operator-badge">👤 <span id="operatorName">Operator</span></span>
+      <button class="btn btn-ghost" id="btnLogout">Exit Terminal</button>
+    </div>
+  </header>
+
+  <a class="site-back dashboard-back" href="/" style="display: inline-block; margin: 24px 24px 0; color: var(--accent); text-decoration: none; font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 1.1rem; letter-spacing: 1px;">
+    ← BACK TO PUBLIC SITE
+  </a>
+
+  <div class="dashboard-layout">
+    
+    <!-- Sidebar / Quick Actions -->
+    <aside class="dashboard-sidebar">
+      <div class="sidebar-block">
+        <button class="btn btn-primary w-full" id="btnOpenCreateModal">+ New Reservation</button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-tab active" data-view="timeline">Schedule Timeline</button>
+        <button class="nav-tab" data-view="list">All Bookings</button>
+        <button class="nav-tab" data-view="fixed">VIP Fixed Bookings</button>
+      </nav>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="dashboard-main">
+
+      <!-- Dashboard Stats Grid -->
+      <div class="dashboard-stats stats-grid">
+        <div class="stat-card">
+          <h3 class="stat-label">TODAY'S MATCHES</h3>
+          <div class="stat-value" id="statToday">0</div>
+        </div>
+        <div class="stat-card" style="border-left: 3px solid #FFB020;">
+          <h3 class="stat-label">PENDING BOOKINGS</h3>
+          <div class="stat-value" id="statPending" style="color: #FFB020;">0</div>
+        </div>
+        <div class="stat-card">
+          <h3 class="stat-label">ACTIVE RESERVATIONS</h3>
+          <div class="stat-value" id="statUpcoming">0</div>
+        </div>
+        <div class="stat-card" style="border-left: 3px solid var(--danger);">
+          <h3 class="stat-label">CANCELLED</h3>
+          <div class="stat-value" id="statCancelled">0</div>
+        </div>
+      </div>
+
+      <!-- ANALYTICS CHART -->
+   <div class="chart-card" style="background: var(--surface); border: 1px solid var(--surface-border); border-radius: 12px; padding: 24px; margin: 24px 0;">
+     <div class="chart-heading" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+       <h3 style="font-family: var(--font-display); font-size: 1.2rem; color: var(--text-main); letter-spacing: 1px;">30-DAY BOOKING VOLUME</h3>
+       <span style="color: var(--accent); font-family: var(--font-mono); font-size: 0.85rem;">Confirmed Matches Only</span>
+     </div>
+     <div style="position: relative; height: 250px; width: 100%;">
+       <canvas id="analyticsChart"></canvas>
+     </div>
+   </div>
+
+      <!-- VIEW: TIMELINE SCHEDULE -->
+      <div class="content-view active" id="view-timeline">
+        <div class="view-controls">
+          <div class="date-picker-wrap">
+            <label for="scheduleDateInput">Selected Date</label>
+            <input type="date" id="scheduleDateInput" class="admin-input">
+          </div>
+          <div class="legend">
+            <span class="legend-item"><span class="dot dot-avail"></span> Available</span>
+            <span class="legend-item"><span class="dot dot-booked"></span> Reserved</span>
+          </div>
+        </div>
+        <div class="timeline-board" id="timelineGrid"></div>
+      </div>
+
+      <!-- VIEW: LIST & SEARCH -->
+      <div class="content-view" id="view-list">
+        <div class="view-controls filter-bar">
+          <input type="text" id="searchInput" aria-label="Search bookings" class="admin-input flex-1" placeholder="🔍 Search by name, phone, or ID...">
+        </div>
+
+        <!-- Table Toolbar with Status Filter and Clear History -->
+        <div class="booking-toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; margin-top: 24px;">
+          <h2 style="font-family: var(--font-display); font-size: 1.5rem; margin: 0;">Reservation Manager</h2>
+          <div class="toolbar-actions" style="display: flex; gap: 12px; align-items: center;">
+            <select id="statusFilter" aria-label="Filter booking status" class="admin-input" style="width: 180px;">
+              <option value="ALL">All Statuses</option>
+              <option value="UPCOMING">Upcoming Matches</option>
+              <option value="PENDING">Pending</option>
+              <option value="CONFIRMED">Confirmed</option>
+              <option value="CANCELLED">Cancelled</option>
+              <option value="ARCHIVE">🗄️ Match Archive</option>
+            </select>
+            <button id="btnClearHistory" class="btn btn-danger" style="display: none; padding: 8px 16px; font-size: 0.9rem;">
+              Clear History
+            </button>
+          </div>
+        </div>
+
+        <div class="table-card" tabindex="0" role="region" aria-label="Bookings">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>REF ID</th>
+                <th>CUSTOMER</th>
+                <th>PHONE</th>
+                <th>DATE & TIME</th>
+                <th>STATUS</th>
+                <th class="text-right">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody id="reservationsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- VIEW: VIP FIXED BOOKINGS -->
+      <div class="content-view" id="view-fixed">
+        <div class="view-controls" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <div>
+            <h2 style="font-family: var(--font-display); font-size: 1.5rem; letter-spacing: 1px;">VIP RECURRING RESERVATIONS</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Permanently locked weekly slots for contract teams.</p>
+          </div>
+          <button class="btn btn-primary" id="btnOpenFixedModal">+ New Fixed Booking</button>
+        </div>
+        <div class="table-card" tabindex="0" role="region" aria-label="Bookings">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>REF ID</th>
+                <th>TEAM / SQUAD</th>
+                <th>PHONE</th>
+                <th>WEEKLY RECURRING SCHEDULE</th>
+                <th class="text-right">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody id="fixedBookingsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- MODAL: MANUAL CREATION -->
+  <div class="modal-overlay" id="createModal">
+    <div role="dialog" aria-modal="true" aria-labelledby="createModalTitle" class="modal-card">
+      <div class="modal-header">
+        <h3 id="createModalTitle">Manual Pitch Booking</h3>
+        <button class="close-btn" data-close="createModal" aria-label="Close dialog">&times;</button>
+      </div>
+      <form id="manualBookingForm" class="modal-form">
+        <div class="form-group">
+          <label for="mName">Player / Team Name</label>
+          <input type="text" id="mName" required class="admin-input">
+        </div>
+        <div class="form-group">
+          <label for="mPhone">Phone Number</label>
+          <input type="tel" id="mPhone" autocomplete="tel" inputmode="tel" maxlength="40" required class="admin-input">
+        </div>
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="mDate">Date</label>
+            <input type="date" id="mDate" required class="admin-input">
+          </div>
+          <div class="form-group flex-1">
+            <label for="mTime">Kickoff Time</label>
+            <select id="mTime" required class="admin-input">
+              <option value="3:00 PM - 4:30 PM">3:00 PM - 4:30 PM</option>
+              <option value="4:30 PM - 6:00 PM">4:30 PM - 6:00 PM</option>
+              <option value="6:00 PM - 7:30 PM">6:00 PM - 7:30 PM</option>
+              <option value="7:30 PM - 9:00 PM">7:30 PM - 9:00 PM</option>
+              <option value="9:00 PM - 10:30 PM">9:00 PM - 10:30 PM</option>
+              <option value="10:30 PM - 12:00 AM">10:30 PM - 12:00 AM</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="mNotes">Staff Notes</label>
+          <input type="text" id="mNotes" class="admin-input" placeholder="e.g. Walk-in">
+        </div>
+        <button type="submit" class="btn btn-primary w-full mt-16">Create Reservation</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: VIP FIXED BOOKING CREATION -->
+  <div class="modal-overlay" id="fixedModal">
+    <div role="dialog" aria-modal="true" aria-labelledby="fixedModalTitle" class="modal-card">
+      <div class="modal-header">
+        <h3 id="fixedModalTitle">Create VIP Fixed Booking</h3>
+        <button class="close-btn" data-close="fixedModal" aria-label="Close dialog">&times;</button>
+      </div>
+      <form id="fixedBookingForm" class="modal-form">
+        <div class="form-group">
+          <label for="fName">Team / Player Name</label>
+          <input type="text" id="fName" required class="admin-input">
+        </div>
+        <div class="form-group">
+          <label for="fPhone">Phone Number</label>
+          <input type="tel" id="fPhone" autocomplete="tel" inputmode="tel" maxlength="40" required class="admin-input">
+        </div>
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="fDay">Day of the Week</label>
+            <select id="fDay" required class="admin-input">
+              <option value="" disabled selected>Select Day</option>
+              <option value="1">Every Monday</option>
+              <option value="2">Every Tuesday</option>
+              <option value="3">Every Wednesday</option>
+              <option value="4">Every Thursday</option>
+              <option value="5">Every Friday</option>
+              <option value="6">Every Saturday</option>
+              <option value="0">Every Sunday</option>
+            </select>
+          </div>
+          <div class="form-group flex-1">
+            <label for="fTime">Weekly Slot</label>
+            <select id="fTime" required class="admin-input">
+              <option value="" disabled selected>Select Slot</option>
+              <option value="3:00 PM - 4:30 PM">3:00 PM - 4:30 PM</option>
+              <option value="4:30 PM - 6:00 PM">4:30 PM - 6:00 PM</option>
+              <option value="6:00 PM - 7:30 PM">6:00 PM - 7:30 PM</option>
+              <option value="7:30 PM - 9:00 PM">7:30 PM - 9:00 PM</option>
+              <option value="9:00 PM - 10:30 PM">9:00 PM - 10:30 PM</option>
+              <option value="10:30 PM - 12:00 AM">10:30 PM - 12:00 AM</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-full mt-16">Lock Weekly Schedule</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: VIP FIXED BOOKING EDIT -->
+  <div class="modal-overlay" id="editFixedModal">
+    <div role="dialog" aria-modal="true" aria-labelledby="editFixedModalTitle" class="modal-card">
+      <div class="modal-header">
+        <h3 id="editFixedModalTitle">Edit VIP Fixed Booking</h3>
+        <button class="close-btn" data-close="editFixedModal" aria-label="Close dialog">&times;</button>
+      </div>
+      <form id="editFixedBookingForm" class="modal-form">
+        <input type="hidden" id="editFId">
+        <div class="form-group">
+          <label for="editFName">Team / Player Name</label>
+          <input type="text" id="editFName" required class="admin-input">
+        </div>
+        <div class="form-group">
+          <label for="editFPhone">Phone Number</label>
+          <input type="tel" id="editFPhone" autocomplete="tel" inputmode="tel" maxlength="40" required class="admin-input">
+        </div>
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="editFDay">Day of the Week</label>
+            <select id="editFDay" required class="admin-input">
+              <option value="1">Every Monday</option>
+              <option value="2">Every Tuesday</option>
+              <option value="3">Every Wednesday</option>
+              <option value="4">Every Thursday</option>
+              <option value="5">Every Friday</option>
+              <option value="6">Every Saturday</option>
+              <option value="0">Every Sunday</option>
+            </select>
+          </div>
+          <div class="form-group flex-1">
+            <label for="editFTime">Weekly Slot</label>
+            <select id="editFTime" required class="admin-input">
+              <option value="3:00 PM - 4:30 PM">3:00 PM - 4:30 PM</option>
+              <option value="4:30 PM - 6:00 PM">4:30 PM - 6:00 PM</option>
+              <option value="6:00 PM - 7:30 PM">6:00 PM - 7:30 PM</option>
+              <option value="7:30 PM - 9:00 PM">7:30 PM - 9:00 PM</option>
+              <option value="9:00 PM - 10:30 PM">9:00 PM - 10:30 PM</option>
+              <option value="10:30 PM - 12:00 AM">10:30 PM - 12:00 AM</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-full mt-16">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: DETAILS & CANCEL -->
+  <div class="modal-overlay" id="detailsModal">
+    <div role="dialog" aria-modal="true" aria-labelledby="dRef" class="modal-card">
+      <div class="modal-header">
+        <h3 id="dRef">REF #</h3>
+        <button class="close-btn" data-close="detailsModal" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body" id="detailsContent"></div>
+      <div class="modal-actions mt-16" id="detailsActions"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: CLEAR HISTORY CONFIRMATION -->
+  <div class="modal-overlay" id="clearHistoryModal">
+    <div role="dialog" aria-modal="true" aria-labelledby="clearHistoryModalTitle" class="modal-card" style="max-width: 400px; text-align: center;">
+      <h3 id="clearHistoryModalTitle" style="font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 12px; color: var(--danger);">Clear History?</h3>
+      <p style="color: var(--text-muted); margin-bottom: 24px;">This will permanently delete all CANCELLED reservations from the database. This action cannot be undone.</p>
+      <div style="display: flex; gap: 12px;">
+        <button class="btn w-full" id="btnCancelClear" style="background: transparent; border: 1px solid var(--border-faint); color: var(--text-main);">Cancel</button>
+        <button class="btn btn-danger w-full" id="btnConfirmClear">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/shared.js?v=2.3.0"></script>
+  <script src="/vendor/flatpickr.min.js?v=4.6.13"></script>
+  <script src="admin.js?v=2.3.0"></script>
+
+  <script src="/vendor/chart.umd.js?v=4.6.1"></script>
+  <script src="/ui.js?v=2.3.0"></script>
+</body>
+</html>
